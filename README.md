@@ -1,22 +1,23 @@
-# YOLOv3
-Full implementation of YOLOv3 in PyTorch.
+# YOLO version3 in Pytorch
+Full implementation of YOLO version3 in PyTorch, including training, evaluation, simple deployment(developing).
 
 ## Overview
 #### YOLOv3: An Incremental Improvement
 [[Paper]](https://pjreddie.com/media/files/papers/YOLOv3.pdf)   
 [[Original Implementation]](https://github.com/pjreddie/darknet)   
 
-#### Why this project
+#### Motivation
 Implement YOLOv3 and darknet53 without original darknet cfg parser.   
 It is easy to custom your backbone network. Such as resnet, densenet...   
 
+Also decide to develop custom structure (like grayscale pretrained model)
 ## Installation
 ##### Environment
 * pytorch >= 0.4.0
 * python >= 3.6.0
 ##### Get code
 ```
-git clone https://github.com/BobLiu20/YOLOv3_PyTorch.git
+git clone https://github.com/zhanghanduo/yolo3_pytorch.git
 cd YOLOv3_PyTorch
 pip3 install -r requirements.txt --user
 ```
@@ -25,6 +26,8 @@ pip3 install -r requirements.txt --user
 cd data/
 bash get_coco_dataset.sh
 ```
+##### Download BDD dataset
+Please visit [BDD100K](https://github.com/ucbdrive/bdd-data) for details.
 
 ## Training
 ##### Download pretrained weights
@@ -34,7 +37,7 @@ bash get_coco_dataset.sh
 ##### Modify training parameters
 1. Review config file ```training/params.py```   
 2. Replace ```YOUR_WORKING_DIR``` to your working directory. Use for save model and tmp file.
-3. Adjust your lr, parallels and so on.
+3. Adjust your lr, parallels, etc.
 ##### Start training
 ```
 cd training
@@ -66,6 +69,14 @@ python eval.py params.py
 | YOLOv3 (train best model)  | 59.66             |yolov3_weights_pytorch.pth 		 |
 
 <p align="center"><img src="https://pjreddie.com/media/image/Screen_Shot_2018-03-24_at_10.48.42_PM.png" width="480"\></p>
+
+#### Roadmap
+
+- [x] Yolov3 training
+- [x] Yolov3 evaluation
+- [ ] Add backbone network other than Darknet
+- [ ] Able to adapt 3-channel image to 1-channel input
+
 
 ## Credit
 ```
