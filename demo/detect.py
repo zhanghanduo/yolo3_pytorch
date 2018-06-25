@@ -8,6 +8,7 @@ import json
 import importlib
 import logging
 import shutil
+from PIL import Image, ImageDraw
 
 import torch
 import torch.nn as nn
@@ -18,10 +19,59 @@ from nets.model_main import ModelMain
 from nets.yolo_loss import YOLOLoss
 from common.coco_dataset import COCODataset
 from common.bdd_dataset import BDDDataset
-from common.utils import non_max_suppression, bbox_iou
+from common.utils import non_max_suppression, bbox_iou, load_class_names, plot_boxes, image2torch
 
 
+def detect(config):
+    is_training = False
+    # Load and initialize network
+    net = ModelMain(config, is_training=is_training)
+    net.train(is_training)
 
+    # Set data parallel
+    net = nn.DataParallel(net)
+    net = net.cuda()
+
+    # Restore pretrain model
+    if config["pretrain_snapshot"]:
+        state_dict = torch.load(config["pretrain_snapshot"])
+        net.load_state_dict(state_dict)
+    else:
+        logging.warning("missing pretrain_snapshot!!!")
+
+    # YOLO loss with 3 scales
+    yolo_losses = []
+    for i in range(3):
+        yolo_losses.append(YOLOLoss(config["yolo"]["anchors"][i],
+                                    config["yolo"]["classes"], (config["img_w"], config["img_h"])))
+
+    # DataLoader
+    dataloader = torch.utils.data.DataLoader(BDDDataset(config["val_path"]),
+                                             batch_size=config["batch_size"],
+                                             shuffle=False, num_workers=16, pin_memory=False)
+
+    # Load tested img
+    imgfile = config["img_path"]
+    img = Image.open(imgfile).convert('RGB')
+    resized = img.resize((config["img_w"], config["img_h"]))
+    input = image2torch(resized)
+    input = input.to(torch.device("cuda"))
+
+    start = time.time()
+    # boxes = do_detect(m, resized, 0.5, 0.4)
+    outputs = net(input)
+    output_list = []
+    for i in range(3):
+        output_list.append(yolo_losses[i](outputs[i]))
+    output = torch.cat(output_list, 1)
+    output = non_max_suppression(output, config["yolo"]["classes"], conf_thres=0.5, nms_thres=0.6)
+    finish = time.time()
+
+    print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
+
+    namefile = config["classname_path"]
+    class_names = load_class_names(namefile)
+    plot_boxes(img, output, 'predictions.jpg', class_names)
 
 
 def main():
@@ -40,7 +90,10 @@ def main():
 
     # Start training
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(map(str, config["parallels"]))
-    evaluate(config)
+    detect(config)
+    
+    # clean cuda memory
+    torch.cuda.empty_cache()
 
 
 if __name__ == "__main__":

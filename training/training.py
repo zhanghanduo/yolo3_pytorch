@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.join(MY_DIRNAME, '..'))
 # sys.path.insert(0, os.path.join(MY_DIRNAME, '..', 'evaluate'))
 from nets.model_main import ModelMain
 from nets.yolo_loss import YOLOLoss
-from common.coco_dataset import COCODataset
+# from common.coco_dataset import COCODataset
 from common.bdd_dataset import BDDDataset
 
 
@@ -231,6 +231,8 @@ def main():
     # Start training
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(map(str, config["parallels"]))
     train(config)
+
+    torch.cuda.empty_cache()
 
 
 if __name__ == "__main__":

@@ -17,4 +17,5 @@ TRAINING_PARAMS = \
     "img_w": 416,
     "parallels": [0],
     "pretrain_snapshot": "../darknet_53/size416x416_try0/20180621153005/model_47_4000.pth",  # load checkpoint
+    # "pretrain_snapshot": "../weights/yolov3_weights_pytorch.pth",  # load original checkpoint (darknet53 as backbone)
 }
