@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 import numpy as np
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 
 def bbox_iou(box1, box2, x1y1x2y2=True):
@@ -41,57 +41,6 @@ def bbox_iou(box1, box2, x1y1x2y2=True):
     iou = inter_area / (b1_area + b2_area - inter_area + 1e-16)
 
     return iou
-
-
-def multi_bbox_ious(boxes1, boxes2, x1y1x2y2=True):
-    if x1y1x2y2:
-        x1_min = torch.min(boxes1[0], boxes2[0])
-        x2_max = torch.max(boxes1[2], boxes2[2])
-        y1_min = torch.min(boxes1[1], boxes2[1])
-        y2_max = torch.max(boxes1[3], boxes2[3])
-        w1, h1 = boxes1[2] - boxes1[0], boxes1[3] - boxes1[1]
-        w2, h2 = boxes2[2] - boxes2[0], boxes2[3] - boxes2[1]
-    else:
-        w1, h1 = boxes1[2], boxes1[3]
-        w2, h2 = boxes2[2], boxes2[3]
-        x1_min = torch.min(boxes1[0] - w1 / 2.0, boxes2[0] - w2 / 2.0)
-        x2_max = torch.max(boxes1[0] + w1 / 2.0, boxes2[0] + w2 / 2.0)
-        y1_min = torch.min(boxes1[1] - h1 / 2.0, boxes2[1] - h2 / 2.0)
-        y2_max = torch.max(boxes1[1] + h1 / 2.0, boxes2[1] + h2 / 2.0)
-
-    w_union = x2_max - x1_min
-    h_union = y2_max - y1_min
-    w_cross = w1 + w2 - w_union
-    h_cross = h1 + h2 - h_union
-    mask = (((w_cross <= 0) + (h_cross <= 0)) > 0)
-    area1 = w1 * h1
-    area2 = w2 * h2
-    carea = w_cross * h_cross
-    carea[mask] = 0
-    uarea = area1 + area2 - carea
-    return carea / uarea
-
-
-def nms(boxes, nms_thresh):
-    if len(boxes) == 0:
-        return boxes
-
-    det_confs = torch.zeros(len(boxes))
-    for i in range(len(boxes)):
-        det_confs[i] = 1 - boxes[i][4]
-
-    _, sortIds = torch.sort(det_confs)
-    out_boxes = []
-    for i in range(len(boxes)):
-        box_i = boxes[sortIds[i]]
-        if box_i[4] > 0:
-            out_boxes.append(box_i)
-            for j in range(i + 1, len(boxes)):
-                box_j = boxes[sortIds[j]]
-                if bbox_iou(box_i, box_j, x1y1x2y2=False) > nms_thresh:
-                    # print(box_i, box_j, bbox_iou(box_i, box_j, x1y1x2y2=False))
-                    box_j[4] = 0
-    return out_boxes
 
 
 def non_max_suppression(prediction, num_classes, conf_thres=0.5, nms_thres=0.4):
@@ -283,6 +232,8 @@ def plot_boxes(img, boxes, savename=None, class_names=None, net_w=416, net_h=416
         x2 = box[2]/net_w * width
         y2 = box[3]/net_h * height
 
+        fnt = ImageFont.truetype("arial.ttf", 30)
+
         rgb = (255, 0, 0)
         if len(box) >= 7 and class_names:
             cls_conf = box[5]
@@ -294,7 +245,7 @@ def plot_boxes(img, boxes, savename=None, class_names=None, net_w=416, net_h=416
             green = get_color(1, offset, classes)
             blue = get_color(0, offset, classes)
             rgb = (red, green, blue)
-            draw.text((x1, y1), class_names[cls_id], fill=rgb)
+            draw.text((x1, y1), class_names[cls_id], font=fnt, fill=rgb)
         draw.rectangle([x1, y1, x2, y2], outline=rgb)
     if savename:
         print("save plot results to %s" % savename)
@@ -346,21 +297,3 @@ def image2torch(img):
         print("unknown image type")
         exit(-1)
     return img
-
-
-def read_data_cfg(datacfg):
-    options = dict()
-    options['gpus'] = '0,1,2,3'
-    options['num_workers'] = '10'
-    with open(datacfg, 'r') as fp:
-        lines = fp.readlines()
-
-    for line in lines:
-        line = line.strip()
-        if line == '':
-            continue
-        key, value = line.split('=')
-        key = key.strip()
-        value = value.strip()
-        options[key] = value
-    return options

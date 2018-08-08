@@ -11,8 +11,6 @@ TRAINING_PARAMS = \
         "classes": 10,
     },
     "batch_size": 16,
-    "iou_thres": 0.5,
-    "val_path": "/media/hd/Dataset/bdd100k/bdd-data/val.txt",
     "img_path": "/media/hd/Dataset/bdd100k/bdd-data/bdd100k/images/100k/val/b1c9c847-3bda4659.jpg", # cac07407-196cd6f8.jpg",
     "classname_path": "../darknet_53/bdd.names",
     "img_h": 416,

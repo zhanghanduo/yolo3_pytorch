@@ -45,11 +45,6 @@ def detect(config):
         yolo_losses.append(YOLOLoss(config["yolo"]["anchors"][i],
                                     config["yolo"]["classes"], (config["img_w"], config["img_h"])))
 
-    # DataLoader
-    dataloader = torch.utils.data.DataLoader(BDDDataset(config["val_path"]),
-                                             batch_size=config["batch_size"],
-                                             shuffle=False, num_workers=16, pin_memory=False)
-
     # Load tested img
     imgfile = config["img_path"]
     img = Image.open(imgfile).convert('RGB')
@@ -58,13 +53,12 @@ def detect(config):
     input = input.to(torch.device("cuda"))
 
     start = time.time()
-    # boxes = do_detect(m, resized, 0.5, 0.4)
     outputs = net(input)
     output_list = []
     for i in range(3):
         output_list.append(yolo_losses[i](outputs[i]))
     output = torch.cat(output_list, 1)
-    output = non_max_suppression(output, config["yolo"]["classes"], conf_thres=0.5, nms_thres=0.6)
+    output = non_max_suppression(output, config["yolo"]["classes"], conf_thres=0.5, nms_thres=0.4)
     finish = time.time()
 
     print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
@@ -91,7 +85,7 @@ def main():
     # Start training
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(map(str, config["parallels"]))
     detect(config)
-    
+
     # clean cuda memory
     torch.cuda.empty_cache()
 
