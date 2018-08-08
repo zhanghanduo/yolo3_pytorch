@@ -13,6 +13,7 @@ TRAINING_PARAMS = \
     "batch_size": 16,
     "iou_thres": 0.5,
     "val_path": "/media/hd/Dataset/bdd100k/bdd-data/val.txt",
+    "annotation_path": "../data/coco/annotations/instances_val2014.json",
     "img_h": 416,
     "img_w": 416,
     "parallels": [0],
