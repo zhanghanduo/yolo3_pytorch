@@ -4,5 +4,6 @@ __pycache__
 coco
 *.pth
 .idea/
+output
 darknet_53/
 data/kitti/
