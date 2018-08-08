@@ -37,7 +37,8 @@ Please visit [BDD100K](https://github.com/ucbdrive/bdd-data) for details.
 ##### Modify training parameters
 1. Review config file ```training/params.py```   
 2. Replace ```YOUR_WORKING_DIR``` to your working directory. Use for save model and tmp file.
-3. Adjust your lr, parallels, etc.
+3. Adjust your GPU device. See parallels.
+4. Adjust other parameters.
 ##### Start training
 ```
 cd training

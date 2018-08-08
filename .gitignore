@@ -5,3 +5,4 @@ coco
 *.pth
 .idea/
 darknet_53/
+data/kitti/
