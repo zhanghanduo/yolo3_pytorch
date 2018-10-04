@@ -1,3 +1,4 @@
+import json
 import os
 import numpy as np
 import logging
@@ -11,11 +12,17 @@ from . import data_transforms
 
 class BDDDataset(Dataset):
     def __init__(self, list_path, img_size, is_training, is_debug=False):
-        with open(list_path, 'r') as file:
-            self.img_files = file.readlines()
-        self.label_files = [path.replace('images', 'labels').replace('.png', '.txt'
-                            ).replace('.jpg', '.txt') for path in
-                            self.img_files]
+        self.img_files = []
+        self.label_files = []
+        for path in open(list_path, 'r'):
+            label_path = path.replace('images', 'labels').replace('.png', '.txt').replace(
+                '.jpg', '.txt').strip()
+            if os.path.isfile(label_path):
+                self.img_files.append(path)
+                self.label_files.append(label_path)
+            else:
+                logging.info("no label found. skip it: {}".format(path))
+        logging.info("Total images: {}".format(len(self.img_files)))
         self.img_shape = (img_size, img_size)
         self.max_objects = 50
         self.is_debug = is_debug
