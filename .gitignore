@@ -7,3 +7,4 @@ coco
 output
 darknet_53/
 data/kitti/
+.vscode/
