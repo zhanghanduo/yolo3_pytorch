@@ -51,14 +51,18 @@ class YOLOLoss(nn.Module):
             mask, noobj_mask = mask.cuda(), noobj_mask.cuda()
             tx, ty, tw, th = tx.cuda(), ty.cuda(), tw.cuda(), th.cuda()
             tconf, tcls = tconf.cuda(), tcls.cuda()
+
+            n_mask = torch.sum(mask)
+            n_noobj_mask = torch.sum(noobj_mask)
+
             #  losses.
-            loss_x = self.bce_loss(x * mask, tx * mask)
-            loss_y = self.bce_loss(y * mask, ty * mask)
-            loss_w = self.mse_loss(w * mask, tw * mask)
-            loss_h = self.mse_loss(h * mask, th * mask)
-            loss_conf = self.bce_loss(conf * mask, mask) + \
-                        0.5 * self.bce_loss(conf * noobj_mask, noobj_mask * 0.0)
-            loss_cls = self.bce_loss(pred_cls[mask == 1], tcls[mask == 1])
+            loss_x = self.bce_loss(x * mask, tx * mask) / n_mask
+            loss_y = self.bce_loss(y * mask, ty * mask) / n_mask
+            loss_w = self.mse_loss(w * mask, tw * mask) / n_mask
+            loss_h = self.mse_loss(h * mask, th * mask) / n_mask
+            loss_conf = self.bce_loss(conf * mask, 1.0 * mask) / n_mask + \
+                        0.5 * self.bce_loss(conf * noobj_mask, noobj_mask * 0.0) / n_noobj_mask
+            loss_cls = self.bce_loss(pred_cls[mask == 1], tcls[mask == 1]) / n_mask
             #  total loss = losses * weight
             loss = loss_x * self.lambda_xy + loss_y * self.lambda_xy + \
                    loss_w * self.lambda_wh + loss_h * self.lambda_wh + \
