@@ -17,7 +17,7 @@ Also decide to develop custom structure (like grayscale pretrained model)
 * python >= 3.6.0
 ##### Get code
 ```
-git clone https://github.com/zhanghanduo/yolo3_pytorch.git
+git clone https://github.com/BobLiu20/YOLOv3_PyTorch
 cd YOLOv3_PyTorch
 pip3 install -r requirements.txt --user
 ```
